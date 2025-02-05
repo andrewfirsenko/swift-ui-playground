@@ -8,14 +8,22 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    private let statements = ["First", "Second", "Third"]
+    @State private var currentSelection = "First"
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            Form {
+                Picker("Position", selection: $currentSelection) {
+                    ForEach(statements, id: \.self) {
+                        Text($0)
+                    }
+                }
+            }
+            .navigationTitle("Select the position")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .padding()
     }
 }
 
