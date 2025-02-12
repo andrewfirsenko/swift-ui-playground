@@ -7,68 +7,93 @@
 
 import SwiftUI
 
-private extension String {
-    static let usd: String = "USD"
+private enum Constants {
+    static let countFlags: Int = 3
 }
 
 struct ContentView: View {
     
-    private let currencyCode: String = Locale.current.currency?.identifier ?? .usd
-    private let tipPercentages: [Int] = [10, 15, 20, 25, 30, 0]
-    @State private var currentAmount: Double = 0.0
-    @State private var currentTip: Int = 20
-    @State private var numberOfPeopleIndex: Int = 0
-    @FocusState private var isFocusedAmount: Bool
-    
-    private var totalResult: Double {
-        let people: Int = numberOfPeopleIndex + 2
-        let tipAmount: Double = currentAmount * Double(currentTip) / 100
-        return (currentAmount + tipAmount) / Double(people)
-    }
+    @State private var countries: [String] = [
+        "Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria",
+        "Poland", "Spain", "UK", "Ukraine", "US"
+    ].shuffled()
+    @State private var correctAnswer: Int = Int.random(in: 0..<Constants.countFlags)
+    @State private var alertTitle: String = ""
+    @State private var isPresentedAlert: Bool = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("How much did you spend") {
-                    TextField(
-                        "Amount",
-                        value: $currentAmount,
-                        format: .currency(code: currencyCode)
-                    )
-                    .keyboardType(.decimalPad)
-                    .focused($isFocusedAmount)
-                }
+        ZStack {
+            RadialGradient(
+                stops: [
+                    Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.45), location: 0.3),
+                    Gradient.Stop(color: Color(red: 0.76, green: 0.15, blue: 0.26), location: 0.3)
+                ],
+                center: .top,
+                startRadius: 200,
+                endRadius: 700
+            )
+            .ignoresSafeArea()
+            
+            VStack {
+                Spacer()
                 
-                Section("How many people do you divide the check") {
-                    Picker("Number of people", selection: $numberOfPeopleIndex) {
-                        ForEach(2..<100) {
-                            Text("\($0) people")
+                Text("Guess the Flag")
+                    .font(.title.bold())
+                    .foregroundStyle(.white)
+                
+                VStack(spacing: 15) {
+                    VStack {
+                        Text("Tap the flag of")
+                            .font(.headline.bold())
+                            .foregroundStyle(.primary)
+                        Text(countries[correctAnswer])
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.primary)
+                    }
+                    ForEach(0..<Constants.countFlags) { index in
+                        Button {
+                            flagTapped(index: index)
+                        } label: {
+                            Image(countries[index])
                         }
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(.ultraThinMaterial)
+                .clipShape(.rect(cornerRadius: 20))
                 
-                Section("How much do you want to tip") {
-                    Picker("Tip", selection: $currentTip) {
-                        ForEach(tipPercentages, id: \.self) {
-                            Text($0, format: .percent)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
+                Spacer()
+                Spacer()
                 
-                Section("Result") {
-                    Text(totalResult, format: .currency(code: currencyCode))
-                }
+                Text("Score: ???")
+                    .font(.headline.bold())
+                    .foregroundStyle(.white)
+                
+                Spacer()
             }
-            .navigationTitle("WeSplit")
-            .toolbar {
-                if isFocusedAmount {
-                    Button("Done") {
-                        isFocusedAmount = false
-                    }
-                }
+            .padding()
+            .alert(alertTitle, isPresented: $isPresentedAlert) {
+                Button("Continue", action: changeQuestion)
+            } message: {
+                Text("Your score is ???")
             }
+
         }
+    }
+    
+    private func flagTapped(index: Int) {
+        if index == correctAnswer {
+            alertTitle = "Correct"
+        } else {
+            alertTitle = "Incorrect"
+        }
+        isPresentedAlert = true
+    }
+    
+    private func changeQuestion() {
+        countries.shuffle()
+        correctAnswer = Int.random(in: 0..<Constants.countFlags)
     }
 }
 
