@@ -9,10 +9,13 @@ import SwiftUI
 
 private enum Constants {
     static let countFlags: Int = 3
+    static let limitCountGame: Int = 4
 }
 
 struct ContentView: View {
     
+    @State private var gameScore: Int = 0
+    @State private var countToRestart: Int = Constants.limitCountGame
     @State private var countries: [String] = [
         "Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria",
         "Poland", "Spain", "UK", "Ukraine", "US"
@@ -20,6 +23,7 @@ struct ContentView: View {
     @State private var correctAnswer: Int = Int.random(in: 0..<Constants.countFlags)
     @State private var alertTitle: String = ""
     @State private var isPresentedAlert: Bool = false
+    @State private var isPresentedResetGame: Bool = false
     
     var body: some View {
         ZStack {
@@ -66,7 +70,7 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
                 
-                Text("Score: ???")
+                Text("Score: \(gameScore)")
                     .font(.headline.bold())
                     .foregroundStyle(.white)
                 
@@ -74,26 +78,47 @@ struct ContentView: View {
             }
             .padding()
             .alert(alertTitle, isPresented: $isPresentedAlert) {
-                Button("Continue", action: changeQuestion)
+                Button("Continue", action: continueTapped)
             } message: {
-                Text("Your score is ???")
+                Text("Your score is \(gameScore)")
             }
-
+            .alert("Game finished", isPresented: $isPresentedResetGame) {
+                Button("Restart", action: restartGame)
+            }
         }
     }
+    
+    // MARK: - Private
     
     private func flagTapped(index: Int) {
         if index == correctAnswer {
             alertTitle = "Correct"
+            gameScore += 1
         } else {
             alertTitle = "Incorrect"
+            gameScore -= 1
         }
         isPresentedAlert = true
+    }
+    
+    private func continueTapped() {
+        countToRestart -= 1
+        guard countToRestart > 0 else {
+            isPresentedResetGame = true
+            return
+        }
+        changeQuestion()
     }
     
     private func changeQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0..<Constants.countFlags)
+    }
+    
+    private func restartGame() {
+        gameScore = 0
+        countToRestart = Constants.limitCountGame
+        changeQuestion()
     }
 }
 
